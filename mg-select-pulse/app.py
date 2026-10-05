@@ -173,12 +173,8 @@ def model_colors(models: list[str]) -> dict[str, str]:
 if CSS.exists():
     st.markdown(f"<style>{CSS.read_text()}</style>", unsafe_allow_html=True)
 
-if LOGO.exists():
-    logo_b64 = base64.b64encode(LOGO.read_bytes()).decode()
-    st.markdown(
-        f'<div class="pulse-logo"><img src="data:image/png;base64,{logo_b64}" alt="MG Select"></div>',
-        unsafe_allow_html=True,
-    )
+LOGO_HTML = (f'<img class="pulse-logo-img" src="data:image/png;base64,{base64.b64encode(LOGO.read_bytes()).decode()}" '
+             f'alt="MG Select">' if LOGO.exists() else '<div class="pulse-logo-text">MG SELECT</div>')
 
 
 
@@ -186,31 +182,46 @@ if LOGO.exists():
 # Data
 # --------------------------------------------------------------------------- #
 
+load_problem: str | None = None
 try:
     with st.spinner("Loading the latest data…"):
         data = dl.load_all()
 except dl.DataValidationError as exc:
-    st.error(f"**Data problem:** {exc}")
+    if not sheets.is_configured():
+        st.error("**This server has no Google key, so it can't read the Google Sheet.** "
+                 "Add the service-account key file as a secret named `service_account.json` "
+                 "(on Render: your service → Environment → Secret Files), then redeploy. "
+                 "See README → Deploying.")
+    else:
+        st.error(f"**Data problem:** {exc}")
     st.stop()
 except Exception as exc:  # Google Sheet unreachable (sharing, network, quota…)
     reason = str(exc) if isinstance(exc, (sheets.SheetAccessError, ConnectionError)) else \
         f"{type(exc).__name__}: {str(exc)[:200]}"
     if dl.LEADS_FILE.exists() and dl.OPPORTUNITIES_FILE.exists() and dl.find_retail_file():
-        note(f"<b>Couldn't read the Google Sheet.</b> {esc(reason)}<br>Showing the last saved files in data/ "
-             "instead — these are <b>not</b> today's numbers.", warn=True)
+        load_problem = reason
         data = dl.load_all(force_files=True)
     else:
         st.error(f"**Couldn't read the Google Sheet.** {reason}")
         st.stop()
 
-src_col, btn_col = st.columns([5, 1])
-with src_col:
-    _intake = pd.concat([data.leads["Created On"], data.opportunities["Created On"]]).max()
-    _retail = data.retail["tr_date"].max()
-    st.markdown(f'<div class="pulse-source">● {esc(data.source_label)} · leads &amp; opportunities up to '
-                f'<b>{_intake:%d %b %Y}</b> · retail up to <b>{_retail:%d %b %Y}</b></div>', unsafe_allow_html=True)
-with btn_col:
-    if sheets.is_configured() and st.button("Refresh now", help="Read the Google Sheet again immediately"):
+_intake = pd.concat([data.leads["Created On"], data.opportunities["Created On"]]).max()
+_retail = data.retail["tr_date"].max()
+st.markdown(f'<div class="pulse-logo">{LOGO_HTML}</div>', unsafe_allow_html=True)
+
+if load_problem:
+    sharing = "refused access" in load_problem
+    headline = ("The Google Sheet isn't shared with the dashboard any more." if sharing
+                else "Couldn't reach the Google Sheet right now.")
+    fix = ("<ol><li>Open the Google Sheet <b>Leads-Opp-Bkgs-Stock</b> and click <b>Share</b>.</li>"
+           "<li>Add <code>sheetreader@salesdashboard-510204.iam.gserviceaccount.com</code> as a <b>Viewer</b> "
+           "(untick “Notify people”).</li><li>Come back here and press <b>Refresh now</b>.</li></ol>") if sharing else \
+          f"<p>{esc(load_problem)}</p><p>Check the internet connection, then press <b>Refresh now</b>.</p>"
+    st.markdown(f'<div class="pulse-alert"><div class="pulse-alert-head">⚠ <b>Not live:</b> {headline} '
+                f'You are looking at saved data up to {_intake:%d %b %Y}.</div>'
+                f'<details><summary>How to fix</summary>{fix}</details></div>', unsafe_allow_html=True)
+    if sheets.is_configured() and st.button("↻  Refresh now", help="Try reading the Google Sheet again",
+                                            key="refresh_btn"):
         sheets.cached_raw_grids.clear()
         sheets.fetch.clear()
         dl._clean_sheet.clear()
@@ -231,8 +242,10 @@ leads_all, opps_all, retail_all = data.leads, data.opportunities, data.retail
 intake_end = pd.concat([leads_all["Created On"], opps_all["Created On"]]).max().date()
 retail_end = retail_all["tr_date"].max().date() if retail_all["tr_date"].notna().any() else None
 
-st.markdown('<div class="pulse-filterbar-label">Filters</div>', unsafe_allow_html=True)
-c1, c2, c3, c4, c5 = st.columns([1.3, 1, 1, 1, 1.2])
+filter_panel = st.container(border=True, key="filter_panel")
+filter_panel.markdown('<div class="pulse-filterbar-label">Filters <span>· apply to every tab</span></div>',
+                      unsafe_allow_html=True)
+c1, c2, c3, c4, c5 = filter_panel.columns([1.3, 1, 1, 1, 1.2])
 with c1:
     date_value = st.date_input(
         "Date range",
@@ -259,14 +272,14 @@ if isinstance(date_value, (tuple, list)):
 else:
     start = end = date_value
 
-ordered_label = st.radio(
-    "Ordered stage counts",
-    ["Status = Booked (current status)", "Any opportunity with a Booking Date (booked at any point)"],
-    horizontal=True,
+ORDERED_STATUS_LABEL, ORDERED_DATE_LABEL = "Status = Booked (current status)", "Has a Booking Date (booked at any point)"
+ordered_label = filter_panel.segmented_control(
+    "Ordered stage counts", [ORDERED_STATUS_LABEL, ORDERED_DATE_LABEL], default=ORDERED_STATUS_LABEL,
+    key="ordered_mode",
     help="C4C moves a booked opportunity to Invoiced, then Delivered, so 'Status = Booked' only counts "
          "bookings not yet invoiced. The second option counts every opportunity that was ever booked.",
-)
-ordered_mode = an.ORDERED_MODE_STATUS if ordered_label.startswith("Status") else an.ORDERED_MODE_BOOKING_DATE
+) or ORDERED_STATUS_LABEL
+ordered_mode = an.ORDERED_MODE_STATUS if ordered_label == ORDERED_STATUS_LABEL else an.ORDERED_MODE_BOOKING_DATE
 
 filters = an.Filters(start, end, sel_sources, sel_channels, sel_models, sel_reps, ordered_mode)
 leads_f = an.filter_leads(leads_all, filters)
@@ -320,7 +333,8 @@ with tab_today:
 
     yesterday = sheets.now_ist().date() - pd.Timedelta(days=1)
     day = min(yesterday, intake_end)  # latest day the leads / opportunities dump covers
-    today_view = st.radio("Show", ["Yesterday", "This month so far"], horizontal=True, key="today_period")
+    today_view = st.segmented_control("Show", ["Yesterday", "This month so far"], default="Yesterday",
+                                      key="today_period") or "Yesterday"
     if today_view == "Yesterday":
         p_start = p_end = day
         section(f"Yesterday · {day:%A, %d %b %Y}",
@@ -333,7 +347,7 @@ with tab_today:
                 f"Everything from the 1st of {p_start:%B} up to the latest day in the data "
                 "(Source / Channel / Model / Rep filters apply; the date range above doesn't).")
         when, file_tag = "this month so far", f"{p_start:%Y%m%d}-{p_end:%Y%m%d}"
-    if day < yesterday:
+    if day < yesterday and data.source == "sheet":  # when not live, the banner at the top already says so
         note(f"The data has nothing for <b>{yesterday:%d %b %Y}</b> yet — showing up to the latest day available, "
              f"<b>{day:%d %b %Y}</b>. It updates at the next scheduled read "
              f"({', '.join(t.strftime('%H:%M') for t in sheets.REFRESH_TIMES)} IST).", warn=True)
@@ -416,8 +430,8 @@ with tab_trends:
     section("Month by month",
             "The selected months plus the months before them, so a single month is always seen in context. "
             "The dashed gold line is the same month a year earlier.")
-    n_months = st.radio("Months to show", [3, 6, 12], index=0, horizontal=True,
-                        format_func=lambda n: f"Last {n} months", key="trend_months")
+    n_months = st.segmented_control("Months to show", [3, 6, 12], default=3,
+                                    format_func=lambda n: f"Last {n} months", key="trend_months") or 3
     t_months = ins.trend_months(start, end, n_months, data.window_start)
     tt = ins.trend_table(leads_all, opps_all, retail_all, filters, t_months)
     ly = ins.trend_table(leads_all, opps_all, retail_all, filters, [m - 12 for m in t_months])
@@ -661,8 +675,8 @@ with tab_funnel:
             "Takes the leads (or opportunities) that came in each month and follows <b>those same customers</b> "
             "to today: did they become an opportunity, take a test drive, book, get delivered? Because it's the "
             "same group all the way through, percentages can never go above 100%. Recent months are still in progress.")
-    cohort_mode = st.radio("Start from", ["Leads", "Opportunities (incl. walk-ins with no lead)"], horizontal=True,
-                           key="cohort_mode")
+    cohort_mode = st.segmented_control("Start from", ["Leads", "Opportunities (incl. walk-ins with no lead)"],
+                                       default="Leads", key="cohort_mode") or "Leads"
     c_months = ins.trend_months(start, end, 3, data.window_start)
     if cohort_mode == "Leads":
         coh = ins.lead_cohort(leads_all, opps_all, filters, c_months)
@@ -846,9 +860,10 @@ with tab_team:
 
     section("Sales rep scorecard",
             "Everyone's numbers for the selected dates in one place. Sorted by retail, then bookings. "
-            "Bars show who leads each column; “Never touched” counts open opportunities with no follow-up logged.")
+            "Bars show who leads each column. TDs = test drives · Cancelled = bookings since cancelled · "
+            "Untouched = open opportunities with no follow-up logged.")
     sc = ins.rep_scorecard(leads_all, opps_all, retail_all, filters, an.export_as_of(opps_all))
-    for c_ in ["Test drive %", "EW %", "Accessories / car (₹ L)"]:
+    for c_ in ["Test drive %", "EW %", "Acc. / car (₹L)"]:
         if c_ in sc:
             fmt = "{:.2f}" if "₹" in c_ else "{:.0f}%"
             sc[c_] = sc[c_].map(lambda v: "—" if v is None or pd.isna(v) else fmt.format(v))
@@ -860,9 +875,9 @@ with tab_team:
             column_config={
                 "Retail": st.column_config.ProgressColumn(min_value=0, max_value=bar_max(sc["Retail"]), format="%d"),
                 "Bookings": st.column_config.ProgressColumn(min_value=0, max_value=bar_max(sc["Bookings"]), format="%d"),
-                "Test drive %": st.column_config.NumberColumn(format="%.0f%%"),
-                "EW %": st.column_config.NumberColumn(format="%.0f%%"),
-                "Accessories / car (₹ L)": st.column_config.NumberColumn(format="%.2f"),
+                "Test drive %": st.column_config.TextColumn(),
+                "EW %": st.column_config.TextColumn(),
+                "Acc. / car (₹L)": st.column_config.TextColumn(),
             },
         )
         st.caption("Opportunities, test drive %, lost and never-touched: opportunities created in the period · "
@@ -920,10 +935,10 @@ with tab_team:
         f"Open opportunities (status “Under Follow-up”) created in the selected period, as of the export date "
         f"<b>{as_of:%d %b %Y}</b>.",
     )
-    cold_after = st.radio(
-        "Going cold after", [3, 7, 14, 30], index=1, horizontal=True, format_func=lambda d: f"{d} days",
+    cold_after = st.segmented_control(
+        "Going cold after", [3, 7, 14, 30], default=7, format_func=lambda d: f"{d} days", key="cold_after",
         help="An opportunity that has been followed up before, but not within this many days of the export date.",
-    )
+    ) or 7
     fu = an.follow_up_view(opps_f, as_of, cold_after)
     n_open = len(fu)
     never = fu[fu["follow_up_state"] == an.TOUCH_NEVER]

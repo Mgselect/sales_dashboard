@@ -224,14 +224,14 @@ def rep_scorecard(leads, opps, retail, f: an.Filters, as_of: pd.Timestamp) -> pd
             "Sales rep": rep,
             "Opportunities": len(o),
             "Test drive %": (o["test_drive_done"].mean() * 100) if len(o) else None,
-            "Test drives done": int((TD["rep"] == rep).sum()),
+            "TDs done": int((TD["rep"] == rep).sum()),
             "Bookings": len(b),
-            "Booking cancelled": int(b["Status"].isin(CANCELLED_STATUSES).sum()),
+            "Cancelled": int(b["Status"].isin(CANCELLED_STATUSES).sum()),
             "Retail": len(r),
-            "Accessories / car (₹ L)": (acc.mean() / 1e5) if acc.notna().any() else None,
+            "Acc. / car (₹L)": (acc.mean() / 1e5) if acc.notna().any() else None,
             "EW %": (ew.mean() * 100) if len(ew) else None,
             "Lost": int(o["Status"].eq("Lost").sum()),
-            "Never touched (open)": int(((fu["rep"] == rep) & fu["follow_up_state"].eq(an.TOUCH_NEVER)).sum()),
+            "Untouched": int(((fu["rep"] == rep) & fu["follow_up_state"].eq(an.TOUCH_NEVER)).sum()),
         })
     out = pd.DataFrame(rows)
     if out.empty:

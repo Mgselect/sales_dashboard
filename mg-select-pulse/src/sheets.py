@@ -4,8 +4,10 @@ Live data from the team's Google Sheet ("Leads-Opp-Bkgs-Stock").
 The sheet is read with a Google service account. Credentials are looked up in
 this order:
     1. st.secrets["gcp_service_account"]   (Streamlit Cloud / .streamlit/secrets.toml)
-    2. the file named by the PULSE_SERVICE_ACCOUNT_FILE environment variable
-    3. secrets/service_account.json in the project folder
+    2. GOOGLE_SERVICE_ACCOUNT_JSON environment variable (the key JSON as text)
+    3. the file named by the PULSE_SERVICE_ACCOUNT_FILE environment variable
+    4. a Render Secret File named service_account.json (/etc/secrets/…), or
+       secrets/service_account.json in the project folder
 If none is found, the dashboard falls back to the files in data/.
 
 Reading is scheduled: the cached copy is refreshed the first time the dashboard
@@ -72,17 +74,34 @@ class SheetAccessError(Exception):
 # Credentials
 # --------------------------------------------------------------------------- #
 
+# Places a hosting service may keep the key file (checked in order).
+SERVICE_ACCOUNT_FILES = [
+    "/etc/secrets/service_account.json",          # Render "Secret Files"
+    str(PROJECT_ROOT / "service_account.json"),   # Render also copies secret files to the app's root
+    str(PROJECT_ROOT / "secrets" / "service_account.json"),
+]
+
+
 def _service_account_info() -> dict | None:
+    """The Google service-account key, from (in order): Streamlit secrets, the
+    GOOGLE_SERVICE_ACCOUNT_JSON environment variable (the whole JSON as text),
+    the file named by PULSE_SERVICE_ACCOUNT_FILE, or a key file in one of
+    SERVICE_ACCOUNT_FILES. None if the dashboard has no key."""
+    import json
+
     try:
         if "gcp_service_account" in st.secrets:
             return dict(st.secrets["gcp_service_account"])
     except Exception:  # no secrets.toml at all
         pass
-    path = os.environ.get("PULSE_SERVICE_ACCOUNT_FILE") or PROJECT_ROOT / "secrets" / "service_account.json"
-    path = Path(path)
-    if path.exists():
-        import json
-        return json.loads(path.read_text())
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    if raw:
+        return json.loads(raw)
+    candidates = ([os.environ["PULSE_SERVICE_ACCOUNT_FILE"]] if os.environ.get("PULSE_SERVICE_ACCOUNT_FILE") else []) \
+        + SERVICE_ACCOUNT_FILES
+    for path in map(Path, candidates):
+        if path.exists():
+            return json.loads(path.read_text())
     return None
 
 

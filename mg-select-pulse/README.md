@@ -93,6 +93,21 @@ The dashboard opens at http://localhost:8502 (set in `.streamlit/config.toml`; 8
   top of `src/sheets.py`. C4C pastes dates month-first into a day-first sheet, so
   each date column has a checked rule — read the module docstring before changing.
 
+## Deploying on Render
+
+1. **New → Web Service** → connect the GitHub repo.
+2. **Root Directory:** `mg-select-pulse`
+3. **Build Command:** `pip install -r requirements.txt`
+4. **Start Command:**
+   `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
+5. **Environment → Environment Variables:** `PYTHON_VERSION` = `3.12.7`
+6. **Environment → Secret Files → Add Secret File:** filename `service_account.json`,
+   contents = the whole service-account key JSON file. The dashboard finds it at
+   `/etc/secrets/service_account.json` automatically. (Alternatively, set the
+   environment variable `GOOGLE_SERVICE_ACCOUNT_JSON` to the JSON text.)
+7. Save and redeploy. The Google Sheet must be shared (Viewer) with the service
+   account's email address.
+
 ## Deploying (Streamlit Community Cloud)
 
 1. Put this folder in a **private** GitHub repository. `.gitignore` already

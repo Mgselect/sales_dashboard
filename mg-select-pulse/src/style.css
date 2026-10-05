@@ -69,7 +69,7 @@ p, li, label, span, div { font-family: var(--sans); }
 .pulse-source b { color: var(--text); }
 
 /* ---------- Section headings ---------------------------------------------- */
-.pulse-section { margin: 46px 0 16px; }
+.pulse-section { margin: 34px 0 14px; }
 .pulse-section h2, .pulse-section h2 span {
   font-family: var(--serif) !important;
   font-size: 1.65rem;
@@ -197,18 +197,74 @@ p, li, label, span, div { font-family: var(--sans); }
 .bm-table tr.total td { background: var(--teal-wash); border-bottom: none; }
 .bm-table tr.total td.name { color: var(--teal); }
 
-/* ---------- Tabs -------------------------------------------------------------- */
-[data-baseweb="tab-list"] {
-  gap: 4px; border-bottom: 1px solid var(--border); margin: 8px 0 6px; flex-wrap: wrap;
+/* ---------- Tabs (button style) ----------------------------------------------- */
+.stTabs [role="tablist"], [data-baseweb="tab-list"] {
+  gap: 6px; flex-wrap: wrap; border-bottom: none !important;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 6px; margin: 18px 0 10px; box-shadow: var(--shadow);
 }
-[data-baseweb="tab"] {
-  height: 44px; padding: 0 18px !important; border-radius: 10px 10px 0 0;
-  font-weight: 600 !important; letter-spacing: 0.02em;
+[data-testid="stTab"], [data-baseweb="tab"] {
+  height: 40px; padding: 0 20px !important; border-radius: 10px !important; border: none !important;
+  background: transparent; transition: background 0.15s ease; display: flex; align-items: center;
 }
-[data-baseweb="tab"] p { font-size: 0.95rem !important; color: var(--text-muted); }
-[data-baseweb="tab"][aria-selected="true"] { background: var(--surface); box-shadow: 0 -1px 0 var(--border) inset; }
-[data-baseweb="tab"][aria-selected="true"] p { color: var(--teal); }
-[data-baseweb="tab-highlight"] { background-color: var(--gold) !important; height: 3px !important; }
+[data-testid="stTab"]:hover, [data-baseweb="tab"]:hover { background: var(--teal-wash); }
+[data-testid="stTab"] p, [data-baseweb="tab"] p {
+  font-size: 0.92rem !important; font-weight: 600 !important; color: var(--text-muted) !important; margin: 0;
+}
+[data-testid="stTab"][aria-selected="true"], [data-baseweb="tab"][aria-selected="true"] {
+  background: var(--teal) !important; box-shadow: 0 2px 8px rgba(32, 108, 111, 0.25);
+}
+[data-testid="stTab"][aria-selected="true"] p, [data-baseweb="tab"][aria-selected="true"] p { color: #FFFFFF !important; }
+[data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none !important; }
+
+/* ---------- Header row -------------------------------------------------------- */
+.pulse-brand { padding: 2px 0; }
+.pulse-logo-img { height: 58px; width: auto; display: block; }
+.pulse-logo-text { font-weight: 700; letter-spacing: 0.3em; color: var(--text); }
+.pulse-status { text-align: right; line-height: 1.5; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.04em; padding: 4px 12px; border-radius: 999px;
+}
+.status-pill .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.status-pill.live { background: var(--teal-wash); color: var(--teal); }
+.status-pill.live .dot { background: var(--teal); box-shadow: 0 0 0 3px rgba(32, 108, 111, 0.18); }
+.status-pill.offline { background: var(--warn-wash); color: var(--warn); }
+.status-pill.offline .dot { background: var(--warn); }
+.status-sub { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+.status-sub b { color: var(--text); }
+.stButton button { white-space: nowrap; }
+
+/* ---------- Alert (not live) -------------------------------------------------- */
+.pulse-alert {
+  background: var(--warn-wash); border: 1px solid #E9D5AE; border-left: 4px solid var(--warn);
+  border-radius: 12px; padding: 12px 18px; margin: 14px 0 4px; color: var(--text); font-size: 0.9rem;
+}
+.pulse-alert details { margin-top: 6px; }
+.pulse-alert summary { cursor: pointer; color: var(--gold-ink); font-weight: 600; font-size: 0.85rem; }
+.pulse-alert ol, .pulse-alert p { margin: 8px 0 2px; color: var(--text-muted); font-size: 0.86rem; }
+.pulse-alert code { font-size: 0.8rem; background: #FFF; padding: 1px 6px; border-radius: 6px; }
+
+/* ---------- Filter panel ------------------------------------------------------ */
+.st-key-filter_panel {
+  background: var(--surface) !important; border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important; box-shadow: var(--shadow); padding: 14px 18px 8px !important;
+  margin-top: 16px;
+}
+.pulse-filterbar-label span { font-family: var(--sans); font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
+
+/* ---------- Segmented controls -------------------------------------------------- */
+[data-testid="stButtonGroup"] button {
+  border-radius: 999px !important; border-color: var(--border) !important; background: var(--surface) !important;
+  padding: 4px 16px !important; min-height: 34px;
+}
+[data-testid="stButtonGroup"] button p { font-size: 0.85rem !important; color: var(--text-muted) !important; }
+[data-testid="stButtonGroup"] button[aria-checked="true"], [data-testid="stButtonGroup"] button[kind$="Active"] {
+  background: var(--teal) !important; border-color: var(--teal) !important;
+}
+[data-testid="stButtonGroup"] button[aria-checked="true"] p, [data-testid="stButtonGroup"] button[kind$="Active"] p {
+  color: #FFFFFF !important;
+}
 
 /* ---------- Today's actions --------------------------------------------------- */
 .action-list { display: grid; gap: 10px; margin: 8px 0 6px; }
@@ -327,7 +383,144 @@ hr { border-color: var(--border) !important; }
 
 /* ---------- Mobile --------------------------------------------------------- */
 @media (max-width: 640px) {
+  .pulse-status { text-align: left; }
+  .pulse-logo-img { height: 44px; }
   .pulse-card .value { font-size: 1.6rem; }
   .pulse-logo img { height: 48px; }
   .pulse-section h2 { font-size: 1.35rem; }
+}
+
+/* ==========================================================================
+   Refined gradient layer — one rich element (the header band), everything
+   else light and quiet; gold only for thin accents. Overrides earlier rules.
+   ========================================================================== */
+:root {
+  --grad-hero: linear-gradient(120deg, #0B3436 0%, #124A4C 45%, #1E6E71 100%);
+  --grad-teal-soft: linear-gradient(135deg, #1B5F62 0%, #2A7F82 100%);
+  --grad-gold: linear-gradient(135deg, #EBDDBF 0%, #D2B47E 55%, #BC9A62 100%);
+  --grad-card: linear-gradient(180deg, #FFFFFF 0%, #FCFBF8 100%);
+  --line: #ECE6DA;
+  --shadow-lux: 0 1px 2px rgba(15, 42, 43, 0.04), 0 8px 24px rgba(15, 61, 63, 0.06);
+  --shadow-lux-hover: 0 2px 4px rgba(15, 42, 43, 0.05), 0 14px 32px rgba(15, 61, 63, 0.10);
+}
+
+/* Page: ivory with a whisper of teal / champagne */
+html, body, .stApp, [data-testid="stAppViewContainer"] {
+  background:
+    radial-gradient(1000px 520px at 0% -8%, rgba(32, 108, 111, 0.06), transparent 60%),
+    radial-gradient(800px 460px at 100% -4%, rgba(201, 169, 110, 0.08), transparent 55%),
+    #F7F5F0 !important;
+}
+
+/* Hide Streamlit's automatic link icons on headings */
+[data-testid="stHeaderActionElements"], [data-testid="stMarkdownContainer"] h1 a,
+[data-testid="stMarkdownContainer"] h2 a, [data-testid="stMarkdownContainer"] h3 a { display: none !important; }
+
+/* ---------- Header band --------------------------------------------------- */
+.st-key-hero {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(600px 220px at 100% 0%, rgba(210, 180, 126, 0.22), transparent 60%),
+    var(--grad-hero);
+  border-radius: 20px; padding: 18px 26px; margin-bottom: 12px;
+  box-shadow: 0 14px 36px rgba(11, 52, 54, 0.22);
+}
+.st-key-hero::after {
+  content: ""; position: absolute; left: 26px; right: 26px; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, rgba(210, 180, 126, 0), rgba(210, 180, 126, 0.85), rgba(210, 180, 126, 0));
+}
+.pulse-brand { display: flex; align-items: center; gap: 18px; }
+.st-key-hero .pulse-logo-img { height: 46px; filter: brightness(0) invert(1); opacity: 0.95; }
+.pulse-logo .pulse-logo-img { height: 64px; width: auto; display: block; filter: none; }
+.pulse-brand-text { border-left: 1px solid rgba(255, 255, 255, 0.22); padding-left: 18px; }
+.pulse-brand-kicker { color: #D9C29A; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; }
+.pulse-brand-title { font-family: var(--serif) !important; color: #FFFFFF; font-size: 1.65rem; font-weight: 600; line-height: 1.15; }
+.st-key-hero .pulse-status { text-align: right; }
+.st-key-hero .status-sub { color: rgba(255, 255, 255, 0.72); }
+.st-key-hero .status-sub b { color: #FFFFFF; }
+.st-key-hero .status-pill { border: 1px solid rgba(255, 255, 255, 0.18); }
+.st-key-hero .status-pill.live { background: rgba(255, 255, 255, 0.12); color: #FFFFFF; }
+.st-key-hero .status-pill.live .dot { background: #7FE0C9; box-shadow: 0 0 0 3px rgba(127, 224, 201, 0.25); }
+.st-key-hero .status-pill.offline { background: rgba(235, 190, 110, 0.18); color: #F3D9A6; border-color: rgba(243, 217, 166, 0.35); }
+.st-key-hero .status-pill.offline .dot { background: #F0B95A; }
+.st-key-refresh_btn button {
+  background: var(--grad-gold) !important; border: none !important; color: #1E2B2B !important;
+  font-weight: 700 !important; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+.st-key-refresh_btn button p { color: #1E2B2B !important; font-weight: 700 !important; }
+.st-key-refresh_btn button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+/* Other buttons (downloads): quiet outline */
+.stDownloadButton button {
+  background: #FFFFFF !important; color: var(--teal) !important; border: 1px solid #CFE0DF !important; box-shadow: none;
+}
+.stDownloadButton button:hover { background: var(--grad-teal-soft) !important; color: #FFFFFF !important; border-color: transparent !important; }
+.stDownloadButton button:hover p { color: #FFFFFF !important; }
+
+/* ---------- Alert --------------------------------------------------------- */
+.pulse-alert {
+  background: linear-gradient(90deg, #FBF1DC 0%, #FDF9F0 70%, #FFFFFF 100%); border: 1px solid #EEDFC0;
+  border-left: 3px solid #C29545; border-radius: 12px; padding: 10px 16px; box-shadow: none;
+}
+
+/* ---------- Filter panel -------------------------------------------------- */
+.st-key-filter_panel {
+  background: rgba(255, 255, 255, 0.92) !important; border: 1px solid var(--line) !important;
+  box-shadow: var(--shadow-lux) !important; border-radius: 16px !important;
+}
+[data-baseweb="select"] > div, [data-baseweb="input"] > div, .stDateInput input {
+  background: #FAF8F4 !important; border-color: #EAE4D8 !important;
+}
+
+/* ---------- Tabs: light bar, teal gradient pill ----------------------------- */
+.stTabs [role="tablist"], [data-baseweb="tab-list"] {
+  background: rgba(255, 255, 255, 0.9) !important; border: 1px solid var(--line) !important;
+  box-shadow: var(--shadow-lux) !important; border-radius: 14px !important; padding: 6px !important;
+}
+[data-testid="stTab"] p, [data-baseweb="tab"] p { color: var(--text-muted) !important; }
+[data-testid="stTab"]:hover, [data-baseweb="tab"]:hover { background: #F1F6F5 !important; }
+[data-testid="stTab"][aria-selected="true"], [data-baseweb="tab"][aria-selected="true"] {
+  background: var(--grad-teal-soft) !important; box-shadow: 0 4px 12px rgba(32, 108, 111, 0.28) !important;
+}
+[data-testid="stTab"][aria-selected="true"] p, [data-baseweb="tab"][aria-selected="true"] p { color: #FFFFFF !important; }
+
+/* ---------- Segmented choices ---------------------------------------------- */
+[data-testid="stButtonGroup"] button { background: #FFFFFF !important; border-color: var(--line) !important; box-shadow: none !important; }
+[data-testid="stButtonGroup"] button[aria-checked="true"] {
+  background: var(--grad-teal-soft) !important; border-color: transparent !important;
+  box-shadow: 0 3px 10px rgba(32, 108, 111, 0.25) !important;
+}
+
+/* ---------- Headings ----------------------------------------------------------- */
+.pulse-section h2::after { width: 56px; height: 2px; background: linear-gradient(90deg, #BC9A62, rgba(210, 180, 126, 0.15)); }
+
+/* ---------- Cards ---------------------------------------------------------------- */
+.pulse-card, .guide-item {
+  position: relative; overflow: hidden; background: var(--grad-card) !important;
+  border: 1px solid var(--line) !important; box-shadow: var(--shadow-lux) !important;
+}
+.pulse-card:hover { box-shadow: var(--shadow-lux-hover) !important; }
+.pulse-card.accent, .src-card, .guide-item { border-top: 1px solid var(--line) !important; }
+.pulse-card.accent::before, .src-card::before, .guide-item::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, #1B5F62, #3A8E90 70%, rgba(58, 142, 144, 0.2));
+}
+.pulse-card.accent .value { color: var(--teal) !important; }
+.pulse-card.warn { background: linear-gradient(180deg, #FCF4E4 0%, #FFFFFF 70%) !important; border-color: #EEDFC0 !important; }
+.pulse-card.warn::before { background: linear-gradient(90deg, #C29545, rgba(194, 149, 69, 0.2)) !important; }
+
+/* ---------- Charts, tables, expanders, notes -------------------------------------- */
+[data-testid="stPlotlyChart"], [data-testid="stDataFrame"], [data-testid="stExpander"], .bm-wrap {
+  border: 1px solid var(--line) !important; box-shadow: var(--shadow-lux) !important;
+}
+[data-testid="stPlotlyChart"] { background: #FFFFFF !important; }
+.pulse-note { background: #FFFFFF; border-color: var(--line); }
+.pulse-note.warn { background: linear-gradient(90deg, #FBF1DC, #FFFFFF); }
+.src-bar span { background: linear-gradient(90deg, #1B5F62, #3A8E90); }
+.gap.up { background: #E6F1F0; }
+.gap.down { background: #F9EDD3; }
+@media (max-width: 640px) {
+  .st-key-hero { padding: 16px 18px; }
+  .st-key-hero .pulse-status { text-align: left; }
+  .pulse-brand-title { font-size: 1.35rem; }
 }
