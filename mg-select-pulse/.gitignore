@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+# Source exports contain customer names and phone numbers — never commit them
+data/*.xlsx
+data/*.xls
+data/*.csv
+data/*.pdf
+~$*
+
+# Credentials — never commit
+.streamlit/secrets.toml
+secrets/
+*.json

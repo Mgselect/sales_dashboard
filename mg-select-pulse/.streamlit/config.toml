@@ -1,0 +1,23 @@
+# Base theme for Streamlit's built-in widgets (inputs, tables, expanders).
+# Keep in sync with the palette in src/style.css, which styles everything else.
+[theme]
+base = "light"
+primaryColor = "#206C6F"
+backgroundColor = "#F7F5F0"
+secondaryBackgroundColor = "#FBFAF7"
+textColor = "#0F2A2B"
+font = "sans serif"
+
+[client]
+# Hides the main menu / Deploy button for viewers (CSS in style.css also hides them).
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+# 8501 is used by the earlier MG Select dashboard; Pulse always runs on 8502.
+port = 8502
+# Skip Streamlit's first-run email prompt (it blocks the server from starting).
+# Side effect: the browser doesn't open automatically — go to http://localhost:8502.
+headless = true

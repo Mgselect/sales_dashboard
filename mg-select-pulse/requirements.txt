@@ -1,0 +1,10 @@
+streamlit
+pandas
+plotly
+openpyxl
+python-dateutil
+pdfplumber
+rapidfuzz
+watchdog
+gspread
+google-auth
