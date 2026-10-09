@@ -8,3 +8,4 @@ rapidfuzz
 watchdog
 gspread
 google-auth
+cryptography

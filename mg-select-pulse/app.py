@@ -189,13 +189,7 @@ try:
     with st.spinner("Loading the latest data…"):
         data = dl.load_all()
 except dl.DataValidationError as exc:
-    if not sheets.is_configured():
-        st.error("**This server has no Google key, so it can't read the Google Sheet.** "
-                 "Add the service-account key file as a secret named `service_account.json` "
-                 "(on Render: your service → Environment → Secret Files), then redeploy. "
-                 "See README → Deploying.")
-    else:
-        st.error(f"**Data problem:** {exc}")
+    st.error(f"**Data problem:** {exc}")
     st.stop()
 except Exception as exc:  # Google Sheet unreachable (sharing, network, quota…)
     reason = str(exc) if isinstance(exc, (sheets.SheetAccessError, ConnectionError)) else \
@@ -235,6 +229,11 @@ if load_problem:
         sheets.fetch.clear()
         dl._clean_sheet.clear()
         st.rerun()
+elif data.source == "files":
+    st.markdown(f'<div class="pulse-trust saved"><span class="dot"></span><b>Data up to {_intake:%d %b %Y}</b>'
+                f'{retail_note}<span class="sep">·</span>From the saved C4C exports and retail register'
+                f'<span class="sep">·</span>Daily updates start once Zoho Sheet is connected</div>',
+                unsafe_allow_html=True)
 else:
     read_at = data.source_label.split("read", 1)[-1].strip() if "read" in data.source_label else ""
     src_txt = "Google Sheet" if data.source == "sheet" else "Saved files"
@@ -1463,7 +1462,7 @@ with tab_retail:
             "Cars on order, in transit and at the dealership, from the “Stock” tab — today's position "
             "(Model and Rep filters apply; the date range doesn't).")
     if getattr(data, "stock", None) is None or getattr(data, "stock", None).empty:
-        note("Stock appears when the dashboard is reading the Google Sheet (the “Stock” tab).")
+        note("Stock appears once the dashboard reads the daily sheet (the “Stock” tab) — coming with the Zoho Sheet connection.")
     else:
         if getattr(data, "stock_as_of", ""):
             note(f"The Google Sheet can't be read right now, so this is the <b>last saved stock</b> "
@@ -1860,7 +1859,7 @@ with tab_insights:
     # 6. Colour demand vs stock ----------------------------------------------------------
     section("Colour demand vs stock",
             "Bookings in the period above by colour, next to unsold cars in stock by colour "
-            "(stock needs the Google Sheet's Stock tab).")
+            "(stock needs the daily sheet's Stock tab).")
     cd = adv.colour_demand_vs_stock(opps_ins, getattr(data, "stock", None))
     if cd.empty or cd["Bookings"].sum() == 0:
         st.caption("No bookings with a colour in this selection.")
@@ -1886,7 +1885,7 @@ with tab_insights:
             if len(short):
                 msg += " Low unsold stock vs demand: <b>" + ", ".join(map(esc, short["Colour"])) + "</b>."
         else:
-            msg += " Stock comparison appears when the dashboard is reading the Google Sheet."
+            msg += " Stock comparison appears once the daily sheet (Zoho) is connected."
         takeaway(msg)
 
 
@@ -1975,7 +1974,8 @@ with tab_guide:
     ]
     st.dataframe(pd.DataFrame(PRACTICES, columns=["Good practice", "Where to find it", "Status"]), hide_index=True,
                  width="stretch", height=table_height(len(PRACTICES)))
-    note("<b>Where the numbers come from:</b> the team's Google Sheet (Leads, Opportunity, Overall TR Data, Stock, "
-         "Inv Cancelled), read every day after 09:20 and 09:30 IST. Every headline number is re-counted from the raw "
-         "sheet on each load; a warning appears at the top if anything stops matching.")
+    note("<b>Where the numbers come from:</b> history up to September 2026 comes from the C4C Leads and "
+         "Opportunities exports and the retail register. New days will come from the team's Zoho Sheet, read every "
+         "day after 09:20 and 09:30 IST. Every headline number is re-counted from the raw files on each load; a "
+         "warning appears at the top if anything stops matching.")
 

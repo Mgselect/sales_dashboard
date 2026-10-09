@@ -112,8 +112,14 @@ def spreadsheet_id() -> str:
         return SPREADSHEET_ID
 
 
+# The team has moved from Google Sheets to Zoho Sheet. History up to Sep 2026 comes
+# from the saved files (see src/snapshot.py); daily Zoho reads are added later.
+# Set PULSE_USE_GOOGLE_SHEET=1 to read the Google Sheet again.
+GOOGLE_SHEET_ENABLED = os.environ.get("PULSE_USE_GOOGLE_SHEET", "").strip() == "1"
+
+
 def is_configured() -> bool:
-    return _service_account_info() is not None
+    return GOOGLE_SHEET_ENABLED and _service_account_info() is not None
 
 
 # --------------------------------------------------------------------------- #

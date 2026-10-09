@@ -661,6 +661,11 @@ def load_all(force_files: bool = False) -> LoadedData:
         leads, opps, retail_out, retail_name, label, stock, inv_cancelled = _load_from_sheet()
         _save_stock_snapshot(stock, label)
     else:
+        from src import snapshot
+        try:
+            snapshot.ensure_files()  # on a server: unpack the encrypted history files
+        except snapshot.SnapshotError as exc:
+            raise DataValidationError(str(exc)) from exc
         leads, opps, retail_out, retail_name, label, stock, inv_cancelled = _load_from_files()
         stock, stock_as_of = _read_stock_snapshot()
     retail, date_issues, retail_notes, retail_rows = retail_out
