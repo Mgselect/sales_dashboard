@@ -524,3 +524,86 @@ html, body, .stApp, [data-testid="stAppViewContainer"] {
   .st-key-hero .pulse-status { text-align: left; }
   .pulse-brand-title { font-size: 1.35rem; }
 }
+
+/* ---------- Insights takeaways ------------------------------------------------ */
+.takeaway {
+  background: linear-gradient(90deg, #EEF6F5 0%, #FFFFFF 100%); border: 1px solid #DCEBE9;
+  border-left: 3px solid var(--teal); border-radius: 12px; padding: 10px 16px; margin: 4px 0 14px;
+  color: var(--text); font-size: 0.9rem; line-height: 1.5;
+}
+
+/* Insights — "What makes a customer book?" cards */
+.drv-card .label { margin-bottom: 2px; }
+.drv-q { font-family: var(--serif); font-size: 1.05rem; color: var(--text); margin-bottom: 14px; }
+.drv-row {
+  display: grid; grid-template-columns: minmax(118px, 1fr) 1.5fr 44px; align-items: center;
+  gap: 12px; padding: 7px 0; border-top: 1px solid #F1EEE7; font-size: 0.9rem; cursor: default;
+}
+.drv-row:hover { background: #FAF8F3; }
+.drv-name { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drv-track { position: relative; height: 8px; background: #F1EEE7; border-radius: 4px; }
+.drv-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px;
+  background: linear-gradient(90deg, #1B5F62, #3A8E90); }
+.drv-fill.below { background: linear-gradient(90deg, #A27F4B, #C4A577); }
+.drv-avg { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px;
+  background: var(--text); opacity: 0.55; border-radius: 1px; }
+.drv-val { text-align: right; font-weight: 600; color: var(--teal); font-variant-numeric: tabular-nums; }
+.drv-val.below { color: #8C6A3A; }
+.drv-legend { font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 14px; display: flex;
+  align-items: center; gap: 6px; flex-wrap: wrap; }
+.drv-key { display: inline-block; width: 14px; height: 8px; border-radius: 4px; margin-left: 8px;
+  background: linear-gradient(90deg, #1B5F62, #3A8E90); }
+.drv-key:first-child { margin-left: 0; }
+.drv-key.below { background: linear-gradient(90deg, #A27F4B, #C4A577); }
+.drv-key-avg { display: inline-block; width: 2px; height: 14px; background: var(--text); opacity: 0.55; margin-left: 8px; }
+
+/* ---------- Cover (first screen: logo only) ----------------------------------- */
+html, [data-testid="stMain"], [data-testid="stAppViewContainer"] { scroll-behavior: smooth; }
+.pulse-cover {
+  min-height: calc(100vh - 1.6rem); display: flex; flex-direction: column; align-items: center;
+  justify-content: center; position: relative; margin-bottom: 8px;
+  background: radial-gradient(ellipse 60% 45% at 50% 46%, #FFFFFF 0%, rgba(255,255,255,0) 70%);
+  animation: cover-in 0.9s ease-out;
+}
+@keyframes cover-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.pulse-cover-logo .pulse-logo-img { height: 132px; width: auto; display: block; filter: none; }
+.pulse-cover-rule { width: 72px; height: 2px; margin-top: 30px;
+  background: linear-gradient(90deg, rgba(176,141,87,0), #B08D57, rgba(176,141,87,0)); }
+a.pulse-cover-cue {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-muted) !important; text-decoration: none !important; opacity: 0.8;
+}
+a.pulse-cover-cue:hover { color: var(--teal) !important; opacity: 1; }
+a.pulse-cover-cue span { font-size: 1.1rem; letter-spacing: 0; animation: cue-bob 2.2s ease-in-out infinite; }
+@keyframes cue-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+#dashboard { scroll-margin-top: 12px; }
+@media (max-width: 700px) { .pulse-cover-logo .pulse-logo-img { height: 84px; } }
+
+/* ---------- Trust bar (data freshness) ----------------------------------------- */
+.pulse-trust {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 0.84rem;
+  color: var(--text-muted); padding: 8px 14px; margin: 0 0 12px; border-radius: 999px;
+  background: #FFFFFF; border: 1px solid var(--border); width: fit-content; max-width: 100%;
+}
+.pulse-trust b { color: var(--text); font-weight: 600; }
+.pulse-trust .sep { color: #C9C2B4; margin: 0 2px; }
+.pulse-trust .dot { width: 8px; height: 8px; border-radius: 50%; background: #2E8B57;
+  box-shadow: 0 0 0 3px rgba(46,139,87,0.15); margin-right: 2px; }
+.pulse-trust.off { border-radius: 14px; border-color: #EEDFC0; background: #FDF9F0; }
+.pulse-trust.off .dot { background: #B4432F; box-shadow: 0 0 0 3px rgba(180,67,47,0.15); }
+.pulse-trust details { flex-basis: 100%; }
+.pulse-trust summary { cursor: pointer; color: #8C6A3A; font-weight: 600; font-size: 0.82rem; }
+.pulse-trust ol, .pulse-trust p { margin: 6px 0 2px; font-size: 0.84rem; }
+.pulse-trust code { font-size: 0.78rem; background: #FFF; padding: 1px 6px; border-radius: 6px; }
+
+/* Insights — "Patterns we found" cards */
+.pat-card { border-left: 3px solid var(--teal); }
+.pat-card.bad { border-left-color: #B08D57; }
+.pat-tag { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; color: var(--teal); }
+.pat-card.bad .pat-tag { color: #8C6A3A; }
+.pat-head { font-family: var(--serif); font-size: 1.12rem; color: var(--text); margin: 6px 0 8px; line-height: 1.3; }
+.pat-num { font-family: var(--serif); font-size: 1.9rem; color: var(--teal); line-height: 1.1; }
+.pat-card.bad .pat-num { color: #8C6A3A; }
+.pat-num span { font-family: var(--sans); font-size: 0.85rem; color: var(--text-muted); }

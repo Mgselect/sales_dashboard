@@ -108,6 +108,7 @@ class LoadedData:
     default_start: date | None = None        # period the dashboard opens on
     default_end: date | None = None
     stock: pd.DataFrame | None = None        # Stock tab (Google Sheet only)
+    stock_as_of: str = ""                    # set when stock is the last saved snapshot, not live
     inv_cancelled: pd.DataFrame | None = None  # Inv Cancelled tab (Google Sheet only)
 
 
@@ -617,6 +618,28 @@ def _load_from_sheet() -> tuple:
     return leads, opps, retail_out, sheets.TAB_RETAIL, label, stock, inv_cancelled
 
 
+STOCK_SNAPSHOT = DATA_DIR / "stock_snapshot.pkl"
+
+
+def _save_stock_snapshot(stock: pd.DataFrame | None, label: str) -> None:
+    """Keep the last good Stock tab so the stock section isn't blank when the sheet can't be read."""
+    if stock is None or stock.empty:
+        return
+    try:
+        DATA_DIR.mkdir(exist_ok=True)
+        pd.to_pickle({"stock": stock, "label": label}, STOCK_SNAPSHOT)
+    except OSError:
+        pass  # read-only disk: just skip the snapshot
+
+
+def _read_stock_snapshot() -> tuple[pd.DataFrame | None, str]:
+    try:
+        snap = pd.read_pickle(STOCK_SNAPSHOT)
+        return snap["stock"], snap.get("label", "")
+    except Exception:
+        return None, ""
+
+
 def _latest_complete_month(last_day: date) -> tuple[date, date]:
     """The latest calendar month fully covered by data ending on `last_day`."""
     next_day = last_day + pd.Timedelta(days=1)
@@ -633,10 +656,13 @@ def load_all(force_files: bool = False) -> LoadedData:
     Raises DataValidationError with a readable message on missing data/columns."""
     from src import sheets
     use_sheet = sheets.is_configured() and not force_files
+    stock_as_of = ""
     if use_sheet:
         leads, opps, retail_out, retail_name, label, stock, inv_cancelled = _load_from_sheet()
+        _save_stock_snapshot(stock, label)
     else:
         leads, opps, retail_out, retail_name, label, stock, inv_cancelled = _load_from_files()
+        stock, stock_as_of = _read_stock_snapshot()
     retail, date_issues, retail_notes, retail_rows = retail_out
 
     # Work on copies — the cached originals must not be mutated.
@@ -674,5 +700,5 @@ def load_all(force_files: bool = False) -> LoadedData:
         source="sheet" if use_sheet else "files", source_label=label,
         window_start=window_start, window_end=window_end,
         default_start=default_start, default_end=default_end,
-        stock=stock, inv_cancelled=inv_cancelled,
+        stock=stock, stock_as_of=stock_as_of, inv_cancelled=inv_cancelled,
     )

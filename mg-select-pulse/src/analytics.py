@@ -175,9 +175,14 @@ class Funnel:
 
 
 def build_funnel(leads: pd.DataFrame, opps: pd.DataFrame, test_drives: pd.DataFrame,
-                 retail: pd.DataFrame, mode: str, statuses: list[str]) -> Funnel:
-    """All inputs already filtered (test_drives via filter_test_drives)."""
-    if mode == ORDERED_MODE_BOOKING_DATE:
+                 retail: pd.DataFrame, mode: str, statuses: list[str],
+                 bookings: pd.DataFrame | None = None) -> Funnel:
+    """All inputs already filtered (test_drives via filter_test_drives). `bookings`
+    = opportunities with a Booking Date in the period; when given (booking-date
+    mode), Ordered counts them, so it matches Bookings on Trends and Team."""
+    if mode == ORDERED_MODE_BOOKING_DATE and bookings is not None:
+        definition = "Bookings made in the selected dates (by Booking Date) — the same count as Bookings on Trends and Team"
+    elif mode == ORDERED_MODE_BOOKING_DATE:
         definition = "Opportunities with a Booking Date (booked at any point), excluding Booking Cancelled"
     else:
         definition = "Opportunity Status = " + " or ".join(f"“{s}”" for s in statuses)
@@ -185,7 +190,8 @@ def build_funnel(leads: pd.DataFrame, opps: pd.DataFrame, test_drives: pd.DataFr
         leads=len(leads),
         opportunities=len(opps),
         test_drives=len(test_drives),
-        ordered=int(ordered_mask(opps, mode, statuses).sum()),
+        ordered=len(bookings) if mode == ORDERED_MODE_BOOKING_DATE and bookings is not None
+        else int(ordered_mask(opps, mode, statuses).sum()),
         retail=len(retail),
         ordered_definition=definition,
     )
