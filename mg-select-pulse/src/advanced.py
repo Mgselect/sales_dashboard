@@ -76,6 +76,16 @@ def time_to_book(opps_f: pd.DataFrame, max_days: int = 90) -> tuple[pd.DataFrame
     return pd.DataFrame({"Days": days, "Share %": [(d <= x).mean() * 100 for x in days]}), len(d)
 
 
+def same_day_bookings(opps_f: pd.DataFrame) -> pd.DataFrame:
+    """Bookings made on the day the opportunity was created, per source."""
+    b = opps_f[opps_f["Booking Date"].notna()] if "Booking Date" in opps_f else opps_f.iloc[0:0]
+    same = (b["Booking Date"].dt.normalize() - b["Created On"].dt.normalize()).dt.days.le(0)
+    g = pd.DataFrame({"Source": b["Source"].fillna("(blank)"), "same": same}).groupby("Source")["same"] \
+        .agg(Bookings="size", Same_day="sum").rename(columns={"Same_day": "Same day"})
+    g["Same day %"] = g["Same day"] / g["Bookings"] * 100
+    return g.sort_values("Same day", ascending=False).reset_index()
+
+
 # --------------------------------------------------------------------------- #
 # 4. Lead calendar
 # --------------------------------------------------------------------------- #

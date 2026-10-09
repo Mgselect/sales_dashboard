@@ -608,3 +608,4 @@ a.pulse-cover-cue span { font-size: 1.1rem; letter-spacing: 0; animation: cue-bo
 .pat-card.bad .pat-num { color: #8C6A3A; }
 .pat-num span { font-family: var(--sans); font-size: 0.85rem; color: var(--text-muted); }
 .pulse-trust.saved .dot { background: #B08D57; box-shadow: 0 0 0 3px rgba(176,141,87,0.18); }
+.sd-row { grid-template-columns: minmax(110px, 1fr) 2.2fr 48px 92px !important; }

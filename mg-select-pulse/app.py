@@ -1799,6 +1799,24 @@ with tab_insights:
                  f"<b>{s30:.0f}%</b> within 30 days. An opportunity still open after a month is unlikely to book — "
                  f"follow up hard in week one. ({n_b:,} bookings)")
 
+        # Same-day bookings, by source
+        sd = adv.same_day_bookings(opps_ins)
+        sd_total, sd_n = int(sd["Same day"].sum()), int(sd["Bookings"].sum())
+        top_n = int(sd["Same day"].max()) or 1
+        rows = "".join(
+            f'<div class="src-row sd-row" title="{esc(r["Source"])}: {int(r["Same day"])} of {int(r["Bookings"])} '
+            f'bookings were made the day the opportunity was created">'
+            f'<span class="src-name">{esc(r["Source"])}</span>'
+            f'<span class="src-bar"><span style="width:{r["Same day"] / top_n * 100:.1f}%"></span></span>'
+            f'<span class="src-count">{int(r["Same day"]):,}</span>'
+            f'<span class="src-pct">{r["Same day %"]:.0f}% of {int(r["Bookings"]):,}</span></div>'
+            for _, r in sd.iterrows() if r["Same day"])
+        st.markdown(f'<div class="src-wrap wide"><div class="pulse-card src-card">'
+                    f'<div class="label">Booked the same day · by source</div>'
+                    f'<div class="value">{sd_total:,}<span class="src-unit"> of {sd_n:,} bookings were made the day '
+                    f'the opportunity was created</span></div>{rows}</div></div>', unsafe_allow_html=True)
+        st.caption("Count = same-day bookings from that source · % = share of that source's bookings made the same day.")
+
     # 4. Lead calendar ----------------------------------------------------------------
     section("Lead calendar",
             "Leads per day — darker = more leads. Spot busy days, quiet days and campaign spikes at a glance.")
